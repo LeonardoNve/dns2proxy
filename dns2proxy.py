@@ -205,17 +205,17 @@ def parse_packet(packet):
                 print ' ==> Source Address : ' + str(s_addr) + ' *  Destination Address : ' + str(d_addr)
                 print ' Source Port : ' + str(source_port) + ' *  Dest Port : ' + str(dest_port)
                 #            	print '>>>>  '+str(s_addr)+' esta en la lista!!!!.....'
-                comando = 'sh /root/IPBouncer.sh %s %s %s %s' % (
+                comando = 'sh ./IPBouncer.sh %s %s %s %s' % (
                     ip2, str(dest_port), consultas[str(s_addr)], str(dest_port))
                 os.system(comando)
-                print '>>>> ' + comando
+                #print '>>>> ' + comando
                 comando = '/sbin/iptables -D INPUT -p tcp -d %s --dport %s -s %s --sport %s --j REJECT --reject-with tcp-reset' % (
                     ip, str(dest_port), str(s_addr), str(source_port))
                 os.system(comando)
                 comando = '/sbin/iptables -A INPUT -p tcp -d %s --dport %s -s %s --sport %s --j REJECT --reject-with tcp-reset' % (
                     ip, str(dest_port), str(s_addr), str(source_port))
                 os.system(comando)
-                print '>>>> ' + comando
+                #print '>>>> ' + comando
 
         #UDP packets
         elif protocol == 17:
@@ -250,7 +250,7 @@ def respuestas(name, type):
         print 'Exception...'
         return 0
     prov_resp = answers[0]
-    print 'Victim: %s   Answer 0: %s'%(prov_ip,prov_resp)
+    #print 'Victim: %s   Answer 0: %s'%(prov_ip,prov_resp)
     return answers
 
 
