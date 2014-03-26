@@ -10,7 +10,7 @@ interfaz=$1
 dnsserver=$2
 routingIP=$3
 
-adminIP = "192.168.1.82"
+adminIP="192.168.1.82"
 
 ifconfig $interfaz:1 $routingIP
 
@@ -18,7 +18,7 @@ iptables -F
 iptables -F -t nat
 iptables -P INPUT DROP 
 iptables -A INPUT -p tcp --dport 443  -j REJECT --reject-with tcp-reset
-#iptables -A INPUT -p tcp --dport 443  -j REJECT 
+#iptables -A INPUT -p tcp --dport 443  -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -s $adminIP -j ACCEPT
 
