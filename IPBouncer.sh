@@ -18,4 +18,4 @@ destination_address=$3
 destination_port=$4
  
 $IPTABLES -t nat -A PREROUTING --dst $listen_address -p tcp --dport $listen_port -j DNAT --to-destination $destination_address:$destination_port 
-$IPTABLES -t nat -A POSTROUTING -J MASQUERADE
+$IPTABLES -t nat -A POSTROUTING -j MASQUERADE
