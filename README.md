@@ -46,7 +46,7 @@ Feature 2
 ---------  
   
 This feature implements the attack of DNS spoofing adding 2 IP address at the top of the resolution and configuring the system to forward the connections.  
-Check my slides at BlackHat Asia 2014 [OFFENSIVE: EXPLOITING DNS SERVERS CHANGES] (http://www.slideshare.net/Fatuo__/offensive-exploiting-dns-servers-changes-blackhat-asia-2014).  
+Check my slides at BlackHat Asia 2014 [OFFENSIVE: EXPLOITING DNS SERVERS CHANGES] (http://www.slideshare.net/Fatuo__/offensive-exploiting-dns-servers-changes-blackhat-asia-2014) and the [Demo Video] (http://www.youtube.com/watch?v=cJtbxX1HS5I).    
   
 To launch this attach there is a shellscript that automatically configure the system using IP tables. You must edit this file to adapt it to your system. DON´T FORGET AdminIP variable!!!!  
 Both IPs must be at the same system to let dns2proxy.py configurate the forwarding  
