@@ -12,31 +12,32 @@ Traditional DNS Spoof adding to the response the original IP address.
 
 Using spoof.cfg file:
 
-hostname ip.ip.ip.ip
+   hostname ip.ip.ip.ip
 
-root@kali:~/dns2proxy# echo "www.s21sec.com 1.1.1.1" > spoof.cfg 
+root@kali:~/dns2proxy# echo "www.s21sec.com 1.1.1.1" > spoof.cfg
 
 // launch in another terminal dns2proxy.py
 
 root@kali:~/dns2proxy# nslookup www.s21sec.com 127.0.0.1
-Server:		127.0.0.1
-Address:	127.0.0.1#53
+Server:         127.0.0.1
+Address:        127.0.0.1#53
 
-Name:	www.s21sec.com
+Name:   www.s21sec.com
 Address: 1.1.1.1
-Name:	www.s21sec.com
+Name:   www.s21sec.com
 Address: 88.84.64.30
+
 
 or you can use dominios.cfg file to spoof all host of a same domain:
 
-root@kali:~/demoBH/dns2proxy# cat dominios.cfg 
+root@kali:~/demoBH/dns2proxy# cat dominios.cfg
 .domain.com 192.168.1.1
 
 root@kali:~/demoBH/dns2proxy# nslookup aaaa.domain.com 127.0.0.1
-Server:		127.0.0.1
-Address:	127.0.0.1#53
+Server:         127.0.0.1
+Address:        127.0.0.1#53
 
-Name:	aaaa.domain.com
+Name:   aaaa.domain.com
 Address: 192.168.1.1
 
 Hostnames at nospoof.cfg will no be spoofed.
@@ -73,14 +74,14 @@ Starting sniffing in (eth0 = 172.16.48.128)....
 < at other terminal >
 
 root@kali:~/dns2proxy# nslookup www.microsoft.com 127.0.0.1
-Server:		127.0.0.1
-Address:	127.0.0.1#53
+Server:         127.0.0.1
+Address:        127.0.0.1#53
 
-Name:	www.microsoft.com
+Name:   www.microsoft.com
 Address: 172.16.48.128
-Name:	www.microsoft.com
+Name:   www.microsoft.com
 Address: 172.16.48.230
-Name:	www.microsoft.com
+Name:   www.microsoft.com
 Address: 65.55.57.27
 
 
@@ -97,27 +98,27 @@ Automatically the dns server detects and correct the changes thats my sslstrip+ 
 This server is necesary to make the sslstrip+ attack.
 
 root@kali:~/dns2proxy# nslookup webaccounts.google.com 127.0.0.1    <-- DNS response like accounts.google.com
-Server:		127.0.0.1
-Address:	127.0.0.1#53
+Server:         127.0.0.1
+Address:        127.0.0.1#53
 
-Name:	webaccounts.google.com
+Name:   webaccounts.google.com
 Address: 172.16.48.128
-Name:	webaccounts.google.com
+Name:   webaccounts.google.com
 Address: 172.16.48.230
-Name:	webaccounts.google.com
+Name:   webaccounts.google.com
 Address: 74.125.200.84
 
 root@kali:~/dns2proxy# nslookup wwww.yahoo.com 127.0.0.1            <-- Take care of the 4 w! DNS response like
-Server:		127.0.0.1                                                     www.yahoo.com  
-Address:	127.0.0.1#53
+Server:         127.0.0.1                                                     www.yahoo.com
+Address:        127.0.0.1#53
 
-Name:	wwww.yahoo.com
+Name:   wwww.yahoo.com
 Address: 172.16.48.128
-Name:	wwww.yahoo.com
+Name:   wwww.yahoo.com
 Address: 172.16.48.230
-Name:	wwww.yahoo.com
+Name:   wwww.yahoo.com
 Address: 68.142.243.179
-Name:	wwww.yahoo.com
+Name:   wwww.yahoo.com
 Address: 68.180.206.184
 
 
