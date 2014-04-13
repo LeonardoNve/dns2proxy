@@ -279,7 +279,7 @@ def requestHandler(address, message):
                         save_req(LOGREQFILE,'Client IP: '+address[0]+'    request is    '+ str(q)+'\n')
                         if q.rdtype == dns.rdatatype.A:
                             print 'Doing the A query....'
-                            resp = std_A_qry(msg)
+                            resp = std_A_qry(msg, prov_ip)
                         elif q.rdtype == dns.rdatatype.PTR:
                             #print 'Doing the PTR query....'
                             resp = std_PTR_qry(msg)
@@ -396,9 +396,9 @@ def std_AAAA_qry(msg):
     return resp
 
 
-def std_A_qry(msg):
+def std_A_qry(msg,prov_ip):
     qs = msg.question
-    global prov_ip
+    #global prov_ip
     global prov_resp
     global consultas
     print str(len(qs)) + ' questions.'
@@ -458,8 +458,8 @@ def std_A_qry(msg):
             return resp
 
         #consultas.keys()
-        prov_ip = ''
-        prov_resp = ''
+        #prov_ip = ''
+        #prov_resp = ''
 
         ttl = 1
         if host not in nospoof:
@@ -473,16 +473,17 @@ def std_A_qry(msg):
                 else:
                     consultas[prov_ip]=prov_resp
                     #print 'DEBUG: Adding consultas[%s]=%s'%(prov_ip,prov_resp)
-                    if len(sys.argv) > 2:
-                        rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[2])
-                        print 'Adding fake IP = ' + sys.argv[2]
-                        resp.answer.append(rrset)
-			
-
-                    if len(sys.argv) > 3:
-			rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
-                        print 'Adding fake IP = ' + sys.argv[3]
-                        resp.answer.append(rrset)
+                    if prov_ip == '127.0.0.1':
+                        print 'Avoiding fakes to localhost!'
+                    else:
+                        if len(sys.argv) > 2:
+                            rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[2])
+                            print 'Adding fake IP = ' + sys.argv[2]
+                            resp.answer.append(rrset)
+                        if len(sys.argv) > 3:
+                            rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
+                            print 'Adding fake IP = ' + sys.argv[3]
+                            resp.answer.append(rrset)
 
         for ip in ips:
             print 'Adding real IP  = ' + ip.to_text()
@@ -569,3 +570,4 @@ while True:
     if noserv:
     	DEBUGLOG('serving a request.')
     	requestHandler(address, message)
+    
