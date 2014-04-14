@@ -39,6 +39,7 @@ dominios = {}
 
 nospoof = []
 specificspoof = {}
+nospoofto = []
 
 LOGREQFILE = "dnslog.txt"
 LOGSNIFFFILE = "snifflog.txt"
@@ -46,6 +47,7 @@ LOGALERTFILE = "dnsalert.txt"
 RESOLVCONF = "resolv.conf"
 
 nospoof_file = "nospoof.cfg"
+nospoofto_file = "nospoofto.cfg"
 specific_file = "spoof.cfg"
 dominios_file = "dominios.cfg"
 
@@ -85,9 +87,13 @@ def process_files():
 	global specific_file
 	global dominios_file
 	global dominios
+	global nospoofto_file
 
 	for i in nospoof[:]:
 		nospoof.remove(i)
+
+	for i in nospoofto[:]:
+		nospoofto.remove(i)
 
 	dominios.clear()
 	specificspoof.clear()
@@ -98,6 +104,15 @@ def process_files():
 		if len(h)>0:
 			print 'Non spoofing '+h[0]
 			nospoof.append(h[0])
+
+	nsfile.close()
+
+	nsfile = open(nospoofto_file,'r')
+	for line in nsfile:
+		h = line.split()
+		if len(h)>0:
+			print 'Non spoofing to '+h[0]
+			nospoofto.append(h[0])
 
 	nsfile.close()
 
@@ -254,6 +269,7 @@ def respuestas(name, type):
 
 def requestHandler(address, message):
     resp = None
+    dosleep = False
     try:
         message_id = ord(message[0]) * 256 + ord(message[1])
         print 'msg id = ' + str(message_id)
@@ -276,7 +292,7 @@ def requestHandler(address, message):
                         save_req(LOGREQFILE,'Client IP: '+address[0]+'    request is    '+ str(q)+'\n')
                         if q.rdtype == dns.rdatatype.A:
                             print 'Doing the A query....'
-                            resp = std_A_qry(msg, prov_ip)
+                            resp, dosleep = std_A_qry(msg, prov_ip)
                         elif q.rdtype == dns.rdatatype.PTR:
                             #print 'Doing the PTR query....'
                             resp = std_PTR_qry(msg)
@@ -310,6 +326,7 @@ def requestHandler(address, message):
 
     if resp:
         s.sendto(resp.to_wire(), address)
+    if dosleep: sleep(1)   # Performance downgrade no tested jet
 
 
 def std_PTR_qry(msg):
@@ -395,6 +412,7 @@ def std_AAAA_qry(msg):
 
 def std_A_qry(msg,prov_ip):
     global consultas
+    dosleep = False
     qs = msg.question
     print str(len(qs)) + ' questions.'
     resp = make_response(qry=msg)
@@ -416,11 +434,11 @@ def std_A_qry(msg,prov_ip):
             print 'Responding with IP = '+ dominios[dominio]
             rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, dominios[dominio])
             resp.answer.append(rrset)
-            return resp
+            return resp, dosleep
 
 
         if spoof.has_key(qname):
-            return std_ASPOOF_qry(msg)
+            return std_ASPOOF_qry(msg), dosleep
 
         ips = respuestas(qname.lower(), 'A')
         if isinstance(ips,numbers.Integral) and not specificspoof.has_key(qname.lower()):
@@ -446,32 +464,31 @@ def std_A_qry(msg,prov_ip):
         if isinstance(ips, numbers.Integral):
             print 'No host....'
             resp = make_response(qry=msg, RCODE=3)  # RCODE =  3	NXDOMAIN
-            return resp
+            return resp, dosleep
 
 
         ttl = 1
-        if host not in nospoof:
+        if (host not in nospoof) & (prov_ip not in nospoofto):
                 if specificspoof.has_key(host):
                     save_req(LOGREQFILE,'!!! Specific host ('+host+') asked....\n')
                     print 'Adding fake IP = '+ specificspoof[host]
                     rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, specificspoof[host])
                     resp.answer.append(rrset)
                     if isinstance(ips,numbers.Integral):
-                        return resp
+                        return resp, dosleep
                 else:
                     consultas[prov_ip]=prov_resp
+                    #Sleep only when using global resquest matrix
+                    dosleep = True
                     #print 'DEBUG: Adding consultas[%s]=%s'%(prov_ip,prov_resp)
-                    if prov_ip == '127.0.0.1':
-                        print 'Avoiding fakes to localhost!'
-                    else:
-                        if len(sys.argv) > 2:
-                            rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[2])
-                            print 'Adding fake IP = ' + sys.argv[2]
-                            resp.answer.append(rrset)
-                        if len(sys.argv) > 3:
-                            rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
-                            print 'Adding fake IP = ' + sys.argv[3]
-                            resp.answer.append(rrset)
+                    if len(sys.argv) > 2:
+                        rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[2])
+                        print 'Adding fake IP = ' + sys.argv[2]
+                        resp.answer.append(rrset)
+                    if len(sys.argv) > 3:
+                        rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
+                        print 'Adding fake IP = ' + sys.argv[3]
+                        resp.answer.append(rrset)
 
         for ip in ips:
             print 'Adding real IP  = ' + ip.to_text()
@@ -479,7 +496,7 @@ def std_A_qry(msg,prov_ip):
             resp.answer.append(rrset)
 
 
-    return resp
+    return resp, dosleep
 
 # def std_A2_qry(msg):
 # 	qs = msg.question
