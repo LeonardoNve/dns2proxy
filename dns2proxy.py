@@ -559,8 +559,9 @@ print 'binded to UDP port 53.'
 serving_ids = []
 noserv = 1
 
-sniff = ThreadSniffer()
-sniff.start()
+if len(sys.argv) >2:
+	sniff = ThreadSniffer()
+	sniff.start()
 
 while True:
     if noserv:
