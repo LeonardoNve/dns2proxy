@@ -28,7 +28,7 @@ Using spoof.cfg file:
 >Address: 88.84.64.30  
   
   
-or you can use dominios.cfg file to spoof all host of a same domain:  
+or you can use domains.cfg file to spoof all host of a same domain:  
   
 >root@kali:~/demoBH/dns2proxy# cat dominios.cfg  
 >.domain.com 192.168.1.1  
