@@ -105,6 +105,8 @@ def process_files():
 
 	nsfile = open(nospoof_file,'r')
 	for line in nsfile:
+		if line[0]=='#':
+			continue
 		h = line.split()
 		if len(h)>0:
 			print 'Non spoofing '+h[0]
@@ -114,6 +116,8 @@ def process_files():
 
 	nsfile = open(victim_file,'r')
 	for line in nsfile:
+		if line[0]=='#':
+			continue
 		h = line.split()
 		if len(h)>0:
 			print 'Spoofing only to '+h[0]
@@ -124,6 +128,8 @@ def process_files():
 
 	nsfile = open(nospoofto_file,'r')
 	for line in nsfile:
+		if line[0]=='#':
+			continue
 		h = line.split()
 		if len(h)>0:
 			print 'Non spoofing to '+h[0]
@@ -133,6 +139,8 @@ def process_files():
 
 	nsfile = open(specific_file,'r')
 	for line in nsfile:
+		if line[0]=='#':
+			continue
 		h = line.split()
 		if len(h)>1:
 			print 'Specific host spoofing '+h[0]+' with '+h[1]
@@ -141,6 +149,8 @@ def process_files():
 	nsfile.close()
 	nsfile = open(dominios_file,'r')
 	for line in nsfile:
+		if line[0]=='#':
+			continue
 		h = line.split()
 		if len(h)>1:
 			print 'Specific domain IP '+h[0]+' with '+h[1]
