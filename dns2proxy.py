@@ -51,7 +51,7 @@ victim_file    = "victims.cfg"
 nospoof_file   = "nospoof.cfg"
 nospoofto_file = "nospoofto.cfg"
 specific_file  = "spoof.cfg"
-dominios_file  = "dominios.cfg"
+dominios_file  = "domains.cfg"
 
 if len(sys.argv) >2:
     ip = sys.argv[2]
