@@ -503,14 +503,14 @@ def std_A_qry(msg,prov_ip):
                         return resp, dosleep
                 else:
                     consultas[prov_ip]=prov_resp
-                    #Sleep only when using global resquest matrix
-                    dosleep = True
                     #print 'DEBUG: Adding consultas[%s]=%s'%(prov_ip,prov_resp)
                     if len(sys.argv) > 2:
                         rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[2])
                         print 'Adding fake IP = ' + sys.argv[2]
                         resp.answer.append(rrset)
                     if len(sys.argv) > 3:
+    	                #Sleep only when using global resquest matrix
+	                    dosleep = True
                         rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
                         print 'Adding fake IP = ' + sys.argv[3]
                         resp.answer.append(rrset)
