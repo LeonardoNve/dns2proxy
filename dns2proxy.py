@@ -510,7 +510,7 @@ def std_A_qry(msg,prov_ip):
                         resp.answer.append(rrset)
                     if len(sys.argv) > 3:
     	                #Sleep only when using global resquest matrix
-	                    dosleep = True
+	                dosleep = True
                         rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
                         print 'Adding fake IP = ' + sys.argv[3]
                         resp.answer.append(rrset)
