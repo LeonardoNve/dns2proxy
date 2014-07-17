@@ -125,7 +125,8 @@ This server is necesary to make the sslstrip+ attack.
 Instalation  
 -----------  
   
-Python 2.6 and dnspython (www.dnspython.com) is needed.
+dnspython (www.dnspython.com) is needed. 
+Tested with Python 2.6 and Python 2.7.
 
 
 Config files description
