@@ -3,9 +3,9 @@
 # dns2proxy for offensive cybersecurity V0.8
 #
 #
-# Usage: python2.6 dns2proxy.py <interface> <IPdnsserver> <routingIP> 
+# Usage: python dns2proxy.py <interface> <IPdnsserver> <routingIP> 
 #
-# Example: python2.6 dns2proxy.py eth0 192.168.1.101 192.168.1.200 
+# Example: python dns2proxy.py eth0 192.168.1.101 192.168.1.200 
 #
 # Author: Leonardo Nve ( leonardo.nve@gmail.com)
 #
