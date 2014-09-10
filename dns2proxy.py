@@ -1,17 +1,16 @@
 #!/usr/bin/python2.6
-
+#
 # dns2proxy for offensive cybersecurity V0.8
 #
 #
-# Usage: python dns2proxy.py <interface> <IPdnsserver> <routingIP> 
+# Usage: python dns2proxy.py <interface> <IPdnsserver> <routingIP> [-noforward]
 #
-<<<<<<< HEAD
-# Example: python2.6 dns2proxy.py eth0 192.168.1.101 192.168.1.200
+# Example:
+#   python2.6 dns2proxy.py eth0 192.168.1.101 192.168.1.200
+#
 # Example for no forwarding (only configured domain based queries and spoofed hosts):
 #   python2.6 dns2proxy.py eth0 -noforward
-=======
-# Example: python dns2proxy.py eth0 192.168.1.101 192.168.1.200 
->>>>>>> FETCH_HEAD
+#
 #
 # Author: Leonardo Nve ( leonardo.nve@gmail.com)
 #
@@ -42,9 +41,7 @@ adminip = '192.168.1.80'
 consultas = {}
 spoof = {}
 dominios = {}
-
 nospoof = []
-
 nospoofto = []
 victims = []
 
