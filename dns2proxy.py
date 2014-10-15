@@ -595,20 +595,20 @@ def std_A_qry(msg, prov_ip):
                     DEBUGLOG('Adding fake IP = ' + ip2)
                     resp.answer.append(rrset)
                 if len(fake_ips)>0:
-                    for ip in fake_ips:
-                        rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, ip)
-                        DEBUGLOG('Adding fake IP = ' + ip)
+                    for fip in fake_ips:
+                        rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, fip)
+                        DEBUGLOG('Adding fake IP = ' + fip)
                         resp.answer.append(rrset)
 
-        if not Forward and len(fake_ips)==0:
+        if not Forward and len(fake_ips) == 0:
             DEBUGLOG('No forwarding....')
             resp = make_response(qry=msg, RCODE=3)  # RCODE =  3	NXDOMAIN
             return resp, dosleep
-        elif len(fake_ips) > 0:
+        elif not Forward and len(fake_ips) > 0:
             DEBUGLOG('No forwarding (but adding fake IPs)...')
-            for ip in fake_ips:
-                        rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, ip)
-                        DEBUGLOG('Adding fake IP = ' + ip)
+            for fip in fake_ips:
+                        rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, fip)
+                        DEBUGLOG('Adding fake IP = ' + fip)
                         resp.answer.append(rrset)
             return resp, dosleep
 
