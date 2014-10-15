@@ -3,7 +3,8 @@ dns2proxy
   
 Offensive DNS server  
   
-This tools offer a different features for post-explotation once you change the DNS server to a Victim.  
+This tools offer a different features for post-explotation once you change the DNS server to a Victim.
+<Referer to help (-h) to new params options>
   
 Feature 1  
 ---------  
