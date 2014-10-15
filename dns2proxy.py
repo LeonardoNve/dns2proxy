@@ -1,22 +1,22 @@
 #!/usr/bin/python2.6
-#
-# dns2proxy for offensive cybersecurity v1.0
-#
-#
-# python dns2proxy.py -h for Usage.
-#
-# Example:
-# python2.6 dns2proxy.py -i eth0 -u 192.168.1.101 -d 192.168.1.200
-#
-# Example for no forwarding (only configured domain based queries and spoofed hosts):
-#   python2.6 dns2proxy.py -i eth0 -noforward
-#
-# Example for no forwarding but add IPs
-#   python dns2proxy.py -i eth0 -I 192.168.1.101,90.1.1.1,155.54.1.1 -noforward
-#
-# Author: Leonardo Nve ( leonardo.nve@gmail.com)
-#
-#
+'''
+dns2proxy for offensive cybersecurity v1.0
+
+
+python dns2proxy.py -h for Usage.
+
+Example:
+python2.6 dns2proxy.py -i eth0 -u 192.168.1.101 -d 192.168.1.200
+
+Example for no forwarding (only configured domain based queries and spoofed hosts):
+  python2.6 dns2proxy.py -i eth0 -noforward
+
+Example for no forwarding but add IPs
+  python dns2proxy.py -i eth0 -I 192.168.1.101,90.1.1.1,155.54.1.1 -noforward
+
+Author: Leonardo Nve ( leonardo.nve@gmail.com)
+'''
+
 
 import dns.message
 import dns.rrset
@@ -72,7 +72,7 @@ Forward = not args.noforward
 
 fake_ips = []
 # List of of ips
-if not args.ips == None:
+if args.ips is not None:
     for ip in args.ips.split(","):
         fake_ips.append(ip)
 
@@ -594,23 +594,23 @@ def std_A_qry(msg, prov_ip):
                     rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, ip2)
                     DEBUGLOG('Adding fake IP = ' + ip2)
                     resp.answer.append(rrset)
-                if len(ips)>0:
+                if len(fake_ips)>0:
                     for ip in fake_ips:
                         rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, ip)
                         DEBUGLOG('Adding fake IP = ' + ip)
                         resp.answer.append(rrset)
 
-        if not Forward and len(ips)==0:
+        if not Forward and len(fake_ips)==0:
             DEBUGLOG('No forwarding....')
             resp = make_response(qry=msg, RCODE=3)  # RCODE =  3	NXDOMAIN
             return resp, dosleep
-        elif len(ips) > 0:
+        elif len(fake_ips) > 0:
             DEBUGLOG('No forwarding (but adding fake IPs)...')
             for ip in fake_ips:
                         rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, ip)
                         DEBUGLOG('Adding fake IP = ' + ip)
                         resp.answer.append(rrset)
-                        return resp, dosleep
+            return resp, dosleep
 
         for realip in ips:
             DEBUGLOG('Adding real IP  = ' + realip.to_text())
