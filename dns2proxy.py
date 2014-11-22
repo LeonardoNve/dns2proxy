@@ -185,7 +185,7 @@ def DEBUGLOG(str):
 
 
 def handler_msg(id):
-    #os.popen('/usr/bin/sendTelegramMsg.sh leo_leo  " Alert document %s" > /dev/null 2> /dev/null &'%id)
+    #os.popen('executeScript %s &'%id)
     return
 
 ######################
