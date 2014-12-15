@@ -37,6 +37,7 @@ import argparse
 consultas = {}
 spoof = {}
 dominios = {}
+transformation = {}
 nospoof = []
 nospoofto = []
 victims = []
@@ -45,12 +46,12 @@ LOGREQFILE = "dnslog.txt"
 LOGSNIFFFILE = "snifflog.txt"
 LOGALERTFILE = "dnsalert.txt"
 RESOLVCONF = "resolv.conf"
-
 victim_file = "victims.cfg"
 nospoof_file = "nospoof.cfg"
 nospoofto_file = "nospoofto.cfg"
 specific_file = "spoof.cfg"
 dominios_file = "domains.cfg"
+transform_file = "transform.cfg"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-N", "--noforward", help="DNS Fowarding OFF (default ON)", action="store_true")
@@ -108,6 +109,7 @@ def process_files():
     global dominios_file
     global dominios
     global nospoofto_file
+    global transform_file
 
     for i in nospoof[:]:
         nospoof.remove(i)
@@ -123,7 +125,7 @@ def process_files():
 
     nsfile = open(nospoof_file, 'r')
     for line in nsfile:
-        if line[0] == '#':
+        if line.startswith('#'): # instead of line[0] - this way it never throws an exception in an empty line
             continue
         h = line.split()
         if len(h) > 0:
@@ -134,7 +136,7 @@ def process_files():
 
     nsfile = open(victim_file, 'r')
     for line in nsfile:
-        if line[0] == '#':
+        if line.startswith('#'): # instead of line[0] - this way it never throws an exception in an empty line
             continue
         h = line.split()
         if len(h) > 0:
@@ -145,7 +147,7 @@ def process_files():
 
     nsfile = open(nospoofto_file, 'r')
     for line in nsfile:
-        if line[0] == '#':
+        if line.startswith('#'): # instead of line[0] - this way it never throws an exception in an empty line
             continue
         h = line.split()
         if len(h) > 0:
@@ -156,7 +158,7 @@ def process_files():
 
     nsfile = open(specific_file, 'r')
     for line in nsfile:
-        if line[0] == '#':
+        if line.startswith('#'): # instead of line[0] - this way it never throws an exception in an empty line
             continue
         h = line.split()
         if len(h) > 1:
@@ -166,7 +168,7 @@ def process_files():
     nsfile.close()
     nsfile = open(dominios_file, 'r')
     for line in nsfile:
-        if line[0] == '#':
+        if line.startswith('#'): # instead of line[0] - this way it never throws an exception in an empty line
             continue
         h = line.split()
         if len(h) > 1:
@@ -174,6 +176,18 @@ def process_files():
             dominios[h[0]] = h[1]
 
     nsfile.close()
+
+    nsfile = open(transform_file, 'r')
+    for line in nsfile.readlines():
+        if line.startswith('#'): # instead of line[0] - this way it never throws an exception in an empty line
+            continue
+        line = line.rstrip()
+        from_host = line.split('.')[0]
+        to_host = line.split('.')[1]
+        transformation[from_host] = to_host
+
+    nsfile.close()
+
     return
 
 
@@ -583,16 +597,10 @@ def std_A_qry(msg, prov_ip):
         if qname.lower() not in spoof and isinstance(ips, numbers.Integral):
         # SSLSTRIP2 transformation
             host2 = ''
-            if host[:5] == 'wwww.' or host[:7] == 'social.':
-                host2 = 'www%s' % dominio
-            elif host[:3] == 'web':
-                host2 = host[3:]
-            elif host[:7] == 'cuentas':
-                host2 = 'accounts%s' % dominio
-            elif host[:5] == 'gmail':
-                host2 = 'mail%s' % dominio
-            elif host == 'chatenabled.gmail.google.com':  # Yes, It is ugly....
-                host2 = 'chatenabled.mail.google.com'
+            for from_host in transformation.keys():
+                if host.startswith(from_host):
+                    host2 = transformation[from_host]
+                    break
             if host2 != '':
                 DEBUGLOG('SSLStrip transforming host: %s => %s ...' % (host, host2))
                 ips = respuestas(host2, 'A')
