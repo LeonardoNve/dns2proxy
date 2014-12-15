@@ -182,8 +182,8 @@ def process_files():
         if line.startswith('#'): # instead of line[0] - this way it never throws an exception in an empty line
             continue
         line = line.rstrip()
-        from_host = line.split('.')[0]
-        to_host = line.split('.')[1]
+        from_host = line.split(':')[0]
+        to_host = line.split(':')[1]
         transformation[from_host] = to_host
 
     nsfile.close()
