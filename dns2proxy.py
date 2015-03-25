@@ -599,7 +599,7 @@ def std_A_qry(msg, prov_ip):
             host2 = ''
             for from_host in transformation.keys():
                 if host.startswith(from_host):
-                    host2 = transformation[from_host]
+                    host2 = transformation[from_host]+host.split(from_host)[1]
                     break
             if host2 != '':
                 DEBUGLOG('SSLStrip transforming host: %s => %s ...' % (host, host2))
