@@ -1,8 +1,3 @@
-NO MORE OPEN DISCLOSURE
-=======================
-
-Cause the new gag law which criminalized the publication of 'offensive' security tools/techniques I have to delete this repository. You can find good forks on MITMf framework (https://github.com/byt3bl33d3r/MITMf) or MANA rogue AP (https://github.com/sensepost/mana).
-
 dns2proxy  
 =========  
   
