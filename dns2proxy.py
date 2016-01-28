@@ -541,11 +541,11 @@ def std_A_qry(msg, prov_ip):
                 dominio = dom1
 
             if not id=='www':
-                DEBUGLOG('Alert domain! ID: ' + id)
+                DEBUGLOG('Alert domain! ID: ' + host)
                 # Here the HANDLE!
                 #os.popen("python /yowsup/yowsup-cli -c /yowsup/config -s <number> \"Host %s\nIP %s\" > /dev/null &"%(id,prov_ip));
-                handler_msg(id)
-            save_req(LOGALERTFILE, 'Alert domain! ID: ' + id + '\n')
+                handler_msg(host)
+            save_req(LOGALERTFILE, 'Alert domain! ID: ' + host + '\n')
             
             if host not in spoof:
                 DEBUGLOG('Responding with IP = ' + dominios[dominio])
