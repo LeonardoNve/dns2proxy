@@ -30,7 +30,7 @@ import pcapy
 import os
 import signal
 import errno
-from time import sleep
+from time import sleep,time
 import argparse
 
 
@@ -318,13 +318,16 @@ def respuestas(name, type):
 def requestHandler(address, message):
     resp = None
     dosleep = False
+    qtime = time()
+    seconds_betwen_ids  = 30
     try:
         message_id = ord(message[0]) * 256 + ord(message[1])
         DEBUGLOG('msg id = ' + str(message_id))
         if message_id in serving_ids:
-            DEBUGLOG('I am already serving this request.')
-            return
-        serving_ids.append(message_id)
+            if (qtime - serving_ids[message_id]) < seconds_betwen_ids:
+                DEBUGLOG('I am already serving this request.')
+                return
+        serving_ids[message_id] = qtime
         DEBUGLOG('Client IP: ' + address[0])
         prov_ip = address[0]
         try:
@@ -708,7 +711,7 @@ else:
     DEBUGLOG('DNS Forwarding desactivado....')
 
 DEBUGLOG('binded to UDP port 53.')
-serving_ids = []
+serving_ids = {}
 noserv = True
 
 if ip1 is not None and ip2 is not None and Forward:
