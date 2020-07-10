@@ -1,4 +1,4 @@
-#dns2proxy  
+# dns2proxy  
  
 Offensive DNS server  
   
@@ -6,7 +6,7 @@ This tools offer a different features for post-explotation once you change the D
 <Referer to help (-h) to new params options>
 
  
-##Installation  
+## Installation  
   
 dnspython (www.dnspython.com) is needed. 
 Tested with Python 2.6 and Python 2.7.
@@ -16,7 +16,7 @@ Tested with Python 2.6 and Python 2.7.
     (venv)$ python dns2proxy.py
 
 
-##Config files description
+## Config files description
 
 domains.cfg (or dominios.cfg): resolve all hosts for the listed domains with the listed IP 
     Ex: 
@@ -46,7 +46,7 @@ resolv.conf: DNS server to forward the queries.
     nameserver 8.8.8.8
 
 
-###Feature 1 
+### Feature 1 
   
 Traditional DNS Spoof adding to the response the original IP address.  
   
@@ -82,7 +82,7 @@ or you can use domains.cfg file to spoof all host of a same domain:
  
 Hostnames at nospoof.cfg will no be spoofed.  
   
-###Feature 2  
+### Feature 2  
   
 This feature implements the attack of DNS spoofing adding 2 IP address at the top of the resolution and configuring the system to forward the connections.  
 Check my slides at BlackHat Asia 2014 [OFFENSIVE: EXPLOITING DNS SERVERS CHANGES] (http://www.slideshare.net/Fatuo__/offensive-exploiting-dns-servers-changes-blackhat-asia-2014) and the [Demo Video] (http://www.youtube.com/watch?v=cJtbxX1HS5I).    
@@ -129,7 +129,7 @@ The fhtang.sh script will terminate the program and restore normal iptables.
 Hostnames at nospoof.cfg will no be spoofed.  
   
   
-###Feature 3
+### Feature 3
   
 Automatically the dns server detects and correct the changes thats my sslstrip+ do to the hostnames to avoid HSTS, so will response properly.  
   
