@@ -1,6 +1,6 @@
 # Update and Install Dependencies
 apt update -y
-apt install -y python2.7 virtualenv libpcap-dev
+apt install -y python2.7 python2-dev virtualenv libpcap-dev
 
 # Create virtualenv for script
 virtualenv -p python2.7 venv
